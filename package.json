@@ -1,0 +1,53 @@
+{
+  "name": "ecs-optimizer",
+  "description": "Automatically optimize ECS service resource allocation based on CloudWatch Metrics",
+  "version": "0.0.0",
+  "author": "Christian Moore <christian@christianmoore.me>",
+  "bin": {
+    "ecs-publish": "./ecs-optimizer.js"
+  },
+  "bugs": {
+    "url": "https://github.com/cimpress-mcp/ecs-publish/issues"
+  },
+  "homepage": "https://github.com/cimpress-mcp/ecs-publish",
+  "issues": "https://github.com/cimpress-mcp/ecs-publish/issues",
+  "keywords": [
+    "aws",
+    "ecs",
+    "docker",
+    "cloudwatch",
+    "optimize",
+    "optimizer",
+    "cpu",
+    "memory",
+    "resources"
+  ],
+  "license": "Apache-2.0",
+  "main": "./ecs-optimizer.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:shamelesscookie/ecs-optimizer.git"
+  },
+  "scripts": {
+    "lint": "eslint . --fix",
+    "depcheck": "depcheck --ignores serverless-plugin* && (npm outdated || true) && nsp check",
+    "preflight": "npm run lint && npm run depcheck"
+  },
+  "devDependencies": {
+    "depcheck": "^0.6.8",
+    "eslint": "^4.18.1",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "nsp": "^3.1.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.201.0",
+    "chalk": "^2.3.1",
+    "cmd-spawn": "^1.4.0",
+    "commander": "^2.14.1",
+    "moment": "^2.21.0"
+  }
+}
