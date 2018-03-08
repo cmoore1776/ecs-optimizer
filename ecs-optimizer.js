@@ -100,7 +100,7 @@ return sts.getCallerIdentity().promise()
   .then((datas) => {
     lib.logger.result('Done.');
     lib.logger.action('Looking for improvements...');
-    let table = new Table({ head: ['Service', 'Max Memory Used', 'Current Reservaton', 'Proposed Reservaton'] });
+    let table = new Table({ head: ['Service', 'Max Used', 'Current', 'Proposed'] });
     datas.forEach((data, i) => {
       if (data.taskDefinition.containerDefinitions.length !== 1) return;
       const currentValue = data.taskDefinition.containerDefinitions[0].memory;
