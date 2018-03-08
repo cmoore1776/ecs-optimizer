@@ -3,6 +3,7 @@
 const eppkg = require('./package.json'),
   program = require('commander'),
   moment = require('moment'),
+  Table = require('cli-table'),
   lib = require('./lib'),
   { STS, ECS, CloudWatch } = require('aws-sdk');
 
@@ -10,14 +11,14 @@ program
   .version(eppkg.version)
   .option('-r, --region [region]', 'AWS region (required)')
   .option('-c, --cluster [cluster]', 'ECS cluster (required)')
+  .option('-p, --percent [percent]', 'Target percentage memory utilization for services', '80')
   .option('-d, --dry-run', 'Display intended changes without applying them')
-  .option('-p, --target-percent [percent]', 'Target percentage memory utilization for services (default: 80)', '80')
   .parse(process.argv);
 
 if (!program.region) return lib.exceptionHandler.throwException(new Error('Must specify --region'));
 if (!program.cluster) return lib.exceptionHandler.throwException(new Error('Must specify --cluster'));
-
-console.log(program.region);
+const desiredPercent = Number(program.percent);
+if (!desiredPercent) return lib.exceptionHandler.throwException(new Error('--percent must be a number'));
 
 const sts = new STS({ region: program.region }),
   ecs = new ECS({ region: program.region }),
@@ -81,10 +82,49 @@ return sts.getCallerIdentity().promise()
       service: s,
       maxMemory: maxMemory[i]
     }});
-    console.log(servicesMaxMemory);
+    lib.logger.result('Done.');
+    lib.logger.action('Looking up task defintions for services...');
+    return Promise.all(services.map((service) => {
+      return ecs.describeServices({
+        services: [service],
+        cluster: program.cluster
+      }).promise();
+    }));
+  })
+  .then((datas) => {
+    const taskDefinitions = datas.map((data) => { return data.services[0].taskDefinition; });
+    return Promise.all(taskDefinitions.map((td) => {
+      return ecs.describeTaskDefinition({ taskDefinition: td }).promise();
+    }));
+  })
+  .then((datas) => {
+    lib.logger.result('Done.');
+    lib.logger.action('Looking for improvements...');
+    let table = new Table({ head: ['Service', 'Max Memory Used', 'Current Reservaton', 'Proposed Reservaton'] });
+    datas.forEach((data, i) => {
+      if (data.taskDefinition.containerDefinitions.length !== 1) return;
+      const currentValue = data.taskDefinition.containerDefinitions[0].memory;
+      const usedMemory = servicesMaxMemory[i].maxMemory / 100.0 * currentValue;
+      const proposedValue = roundToMultipleOf((usedMemory / (desiredPercent / 100.0)), 16);
+      table.push([
+        servicesMaxMemory[i].service,
+        `${Math.round(servicesMaxMemory[i].maxMemory)}%`,
+        currentValue,
+        proposedValue
+      ]);
+    });
+    console.log(table.toString());
   })
   .catch(lib.exceptionHandler.handleException);
 
+function roundToMultipleOf (n, multiple) {
+  if (n > 0)
+    return Math.ceil(n/(multiple * 1.0)) * multiple;
+  else if (n < 0)
+    return Math.floor(n/(multiple * 1.0)) * multiple;
+  else
+    return multiple;
+}
 
 function paginateServices (params, serviceArns = []) {
   params.maxResults = 10;
