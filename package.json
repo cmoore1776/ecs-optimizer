@@ -1,7 +1,7 @@
 {
   "name": "ecs-optimizer",
   "description": "Automatically optimize ECS service resource allocation based on CloudWatch Metrics",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "author": "Christian Moore <christian@christianmoore.me>",
   "bin": {
     "ecs-publish": "./ecs-optimizer.js"
