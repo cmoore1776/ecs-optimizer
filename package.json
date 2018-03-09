@@ -1,6 +1,6 @@
 {
   "name": "ecs-optimizer",
-  "description": "Automatically optimize ECS service resource allocation based on CloudWatch Metrics",
+  "description": "Recommendation engine for ECS service memory allocation based on CloudWatch Metrics",
   "version": "1.0.0",
   "author": "Christian Moore <christian@christianmoore.me>",
   "bin": {
@@ -30,7 +30,7 @@
   },
   "scripts": {
     "lint": "eslint . --fix",
-    "depcheck": "depcheck --ignores serverless-plugin* && (npm outdated || true) && nsp check",
+    "depcheck": "depcheck && npm outdated && nsp check",
     "preflight": "npm run lint && npm run depcheck"
   },
   "devDependencies": {
@@ -39,15 +39,14 @@
     "eslint-config-standard": "^11.0.0",
     "eslint-plugin-import": "^2.9.0",
     "eslint-plugin-node": "^6.0.1",
-    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-promise": "^3.7.0",
     "eslint-plugin-standard": "^3.0.1",
     "nsp": "^3.1.0"
   },
   "dependencies": {
-    "aws-sdk": "^2.201.0",
+    "aws-sdk": "^2.207.0",
     "chalk": "^2.3.1",
     "cli-table": "^0.3.1",
-    "cmd-spawn": "^1.4.0",
     "commander": "^2.14.1",
     "moment": "^2.21.0"
   }
