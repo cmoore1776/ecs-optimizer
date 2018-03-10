@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "author": "Christian Moore <christian@christianmoore.me>",
   "bin": {
-    "ecs-publish": "./ecs-optimizer.js"
+    "ecs-optimizer": "./ecs-optimizer.js"
   },
   "bugs": {
     "url": "https://github.com/cimpress-mcp/ecs-publish/issues"
