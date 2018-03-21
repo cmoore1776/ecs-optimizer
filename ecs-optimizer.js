@@ -104,7 +104,7 @@ sts.getCallerIdentity().promise()
     let table = new Table({ head: ['Service', 'Max Used', 'Current', 'Proposed'] });
     datas.forEach((data, i) => {
       if (data.taskDefinition.containerDefinitions.length !== 1) return;
-      const currentValue = data.taskDefinition.containerDefinitions[0].memory;
+      const currentValue = data.taskDefinition.containerDefinitions[0].memory || data.taskDefinition.containerDefinitions[0].memoryReservation;
       const usedMemory = servicesMaxMemory[i].maxMemory / 100.0 * currentValue;
       const proposedValue = roundToMultipleOf((usedMemory / (targetPercent / 100.0)), 16);
       table.push([
