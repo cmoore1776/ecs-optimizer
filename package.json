@@ -30,18 +30,17 @@
   },
   "scripts": {
     "lint": "eslint . --fix",
-    "depcheck": "depcheck && npm outdated && nsp check",
+    "depcheck": "depcheck && npm outdated",
     "preflight": "npm run lint && npm run depcheck"
   },
   "devDependencies": {
     "depcheck": "^0.6.8",
     "eslint": "^5.2.0",
-    "eslint-config-standard": "^11.0.0",
+    "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.13.0",
     "eslint-plugin-node": "^7.0.1",
-    "eslint-plugin-promise": "^3.8.0",
-    "eslint-plugin-standard": "^3.1.0",
-    "nsp": "^3.1.0"
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0"
   },
   "dependencies": {
     "aws-sdk": "^2.207.0",
