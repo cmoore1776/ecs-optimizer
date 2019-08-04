@@ -29,12 +29,11 @@
     "url": "git@github.com:shamelesscookie/ecs-optimizer.git"
   },
   "scripts": {
-    "lint": "eslint . --fix",
-    "depcheck": "depcheck && npm outdated",
-    "preflight": "npm run lint && npm run depcheck"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "preflight": "npm run lint && npm audit"
   },
   "devDependencies": {
-    "depcheck": "^0.8.0",
     "eslint": "^5.16.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.17.3",
