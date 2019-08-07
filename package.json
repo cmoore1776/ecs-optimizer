@@ -1,7 +1,7 @@
 {
   "name": "ecs-optimizer",
   "description": "Recommendation engine for ECS service memory allocation based on CloudWatch Metrics",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "author": "Christian Moore <christian@christianmoore.me>",
   "bin": {
     "ecs-optimizer": "./ecs-optimizer.js"
