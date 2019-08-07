@@ -46,7 +46,7 @@ sts.getCallerIdentity().promise()
     lib.logger.result('Done.');
     metrics.sort((a, b) => { return (a.Dimensions[0].Value < b.Dimensions[0].Value) ? -1 : 1; });
     lib.logger.action('Fetching statistics for active services...');
-    return Promise.all(metrics.map((metric) => {
+    return Promise.all(metrics.map(async (metric) => {
       const serviceName = (metric.Dimensions && metric.Dimensions[0].Value);
       if (!serviceName || services.indexOf(serviceName) < 0) return;
       const params = {
@@ -68,19 +68,19 @@ sts.getCallerIdentity().promise()
         Statistics: ['Maximum'],
         Unit: 'Percent'
       };
-      return cloudWatch.getMetricStatistics(params).promise();
+      return {
+        serviceName,
+        metrics: await cloudWatch.getMetricStatistics(params).promise()
+      };
     }));
   })
   .then((datas) => {
     lib.logger.result('Done.');
     lib.logger.action('Calculating maximum memory usage over last 24 hours...');
-    const maxMemory = datas.filter((data) => { return data; }).map((data) => {
-      return Math.max.apply(Math, data.Datapoints.map((dp) => { return dp.Maximum; }));
-    });
-    servicesMaxMemory = services.map((s, i) => {
+    servicesMaxMemory = datas.filter((data) => { return data; }).map((data) => {
       return {
-        service: s,
-        maxMemory: maxMemory[i]
+        service: data.serviceName,
+        maxMemory: Math.max.apply(Math, data.metrics.Datapoints.map((dp) => { return dp.Maximum; })) || 0
       };
     });
     lib.logger.result('Done.');
@@ -104,12 +104,13 @@ sts.getCallerIdentity().promise()
     let table = new Table({ head: ['Service', 'Max Used', 'Current', 'Proposed'] });
     datas.forEach((data, i) => {
       if (data.taskDefinition.containerDefinitions.length !== 1) return;
+      if (!servicesMaxMemory[i]) return;
       const currentValue = data.taskDefinition.containerDefinitions[0].memory || data.taskDefinition.containerDefinitions[0].memoryReservation;
       const usedMemory = servicesMaxMemory[i].maxMemory / 100.0 * currentValue;
-      const proposedValue = roundToMultipleOf((usedMemory / (targetPercent / 100.0)), 16);
+      const proposedValue = (servicesMaxMemory[i].maxMemory === 0) ? '?' : roundToMultipleOf((usedMemory / (targetPercent / 100.0)), 16);
       table.push([
         servicesMaxMemory[i].service,
-        `${Math.round(servicesMaxMemory[i].maxMemory)}%`,
+        (servicesMaxMemory[i].maxMemory === 0) ? '?' : `${Math.round(servicesMaxMemory[i].maxMemory)}%`,
         currentValue,
         proposedValue
       ]);
