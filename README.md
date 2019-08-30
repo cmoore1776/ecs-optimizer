@@ -17,17 +17,18 @@ $ ./ecs-optimizer.js --help
 
   Options:
 
-    -V, --version            output the version number
-    -r, --region [region]    AWS region (required)
-    -c, --cluster [cluster]  ECS cluster (required)
-    -t, --target [target]    Target percentage memory utilization for services (default: 75)
-    -h, --help               output usage information
+    -V, --version                   output the version number
+    -r, --region [region]           AWS region (required)
+    -c, --cluster [cluster]         ECS cluster (required)
+    -p, --percentage [percentage]   Target percentage memory utilization for services (default: 75)
+    -t, --type [type]               Type of metric for utilization analyze (CPUUtilization or MemoryUtilization) (default: "MemoryUtilization")
+    -h, --help                      output usage information
 ```
 
 ## Example output
 
 ```shell
-$ ./ecs-optimizer.js --region us-east-1 --cluster my-ecs-cluster --target 75
+$ ./ecs-optimizer.js --region us-east-1 --cluster my-ecs-cluster --percentage 75
 
 Validating AWS credentials...
 => Logged in as arn:aws:sts::12345678910:assumed-role/role/nickname
@@ -35,13 +36,13 @@ Validating AWS credentials...
 Enumerating services in cluster: my-ecs-cluster...
 => Done.
 
-Enumerating all available ECS memory utilization metrics...
+Enumerating all available ECS utilization metrics...
 => Done.
 
 Fetching statistics for active services...
 => Done.
 
-Calculating maximum memory usage over last 24 hours...
+Calculating maximum metric usage over last 24 hours...
 => Done.
 
 Looking up task defintions for services...
