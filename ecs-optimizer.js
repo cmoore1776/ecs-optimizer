@@ -11,19 +11,20 @@ program
   .version(eppkg.version)
   .option('-r, --region [region]', 'AWS region (required)')
   .option('-c, --cluster [cluster]', 'ECS cluster (required)')
-  .option('-t, --target [target]', 'Target percentage memory utilization for services', '75')
+  .option('-p, --percentage [percentage]', 'Target percentage memory utilization for services', '75')
+  .option('-t, --type [type]', 'Type of metric for utilization analyze (CPUUtilization or MemoryUtilization)', 'MemoryUtilization')
   .parse(process.argv);
 
 if (!program.region) lib.exceptionHandler.throwException(new Error('Must specify --region'));
 if (!program.cluster) lib.exceptionHandler.throwException(new Error('Must specify --cluster'));
-const targetPercent = Number(program.target);
-if (!targetPercent) lib.exceptionHandler.throwException(new Error('--target must be a number'));
+const targetPercent = Number(program.percentage);
+if (!targetPercent) lib.exceptionHandler.throwException(new Error('--percentage must be a number'));
 
 const sts = new STS({ region: program.region }),
   ecs = new ECS({ region: program.region }),
   cloudWatch = new CloudWatch({ region: program.region });
 
-let services, servicesMaxMemory;
+let services, servicesMaxMetric;
 
 lib.logger.action(`Validating AWS credentials...`);
 sts.getCallerIdentity().promise()
@@ -39,8 +40,8 @@ sts.getCallerIdentity().promise()
   .then((serviceArns) => {
     services = serviceArns.map((arn) => { return arn.split('/').slice(-1)[0]; }).sort();
     lib.logger.result('Done.');
-    lib.logger.action('Enumerating all available ECS memory utilization metrics...');
-    return paginateMetrics({ Namespace: 'AWS/ECS', MetricName: 'MemoryUtilization' });
+    lib.logger.action('Enumerating all available ECS utilization metrics...');
+    return paginateMetrics({ Namespace: 'AWS/ECS', MetricName: program.type });
   })
   .then((metrics) => {
     lib.logger.result('Done.');
@@ -76,13 +77,20 @@ sts.getCallerIdentity().promise()
   })
   .then((datas) => {
     lib.logger.result('Done.');
-    lib.logger.action('Calculating maximum memory usage over last 24 hours...');
-    servicesMaxMemory = datas.filter((data) => { return data; }).map((data) => {
+    lib.logger.action('Calculating maximum metric usage over last 24 hours...');
+    servicesMaxMetric = datas.filter((data) => { return data; }).map((data) => {
       return {
         service: data.serviceName,
-        maxMemory: Math.max.apply(Math, data.metrics.Datapoints.map((dp) => { return dp.Maximum; })) || 0
+        maxMetricValue: Math.max.apply(Math, data.metrics.Datapoints.map((dp) => { return dp.Maximum; })) || 0
       };
     });
+    servicesMaxMetric = Array.from(new Set(servicesMaxMetric.map(s => s.service)))
+      .map(service => {
+        return {
+          service: service,
+          maxMetricValue: servicesMaxMetric.find(s => s.service === service).maxMetricValue
+        };
+      });
     lib.logger.result('Done.');
     lib.logger.action('Looking up task defintions for services...');
     return Promise.all(services.map((service) => {
@@ -104,13 +112,13 @@ sts.getCallerIdentity().promise()
     let table = new Table({ head: ['Service', 'Max Used', 'Current', 'Proposed'] });
     datas.forEach((data, i) => {
       if (data.taskDefinition.containerDefinitions.length !== 1) return;
-      if (!servicesMaxMemory[i]) return;
-      const currentValue = data.taskDefinition.containerDefinitions[0].memory || data.taskDefinition.containerDefinitions[0].memoryReservation;
-      const usedMemory = servicesMaxMemory[i].maxMemory / 100.0 * currentValue;
-      const proposedValue = (servicesMaxMemory[i].maxMemory === 0) ? '?' : roundToMultipleOf((usedMemory / (targetPercent / 100.0)), 16);
+      if (!servicesMaxMetric[i]) return;
+      const currentValue = getCurrentValue(data);
+      const usedValue = servicesMaxMetric[i].maxMetricValue / 100.0 * currentValue;
+      const proposedValue = (servicesMaxMetric[i].maxMetricValue === 0) ? '?' : roundToMultipleOf((usedValue / (targetPercent / 100.0)), 16);
       table.push([
-        servicesMaxMemory[i].service,
-        (servicesMaxMemory[i].maxMemory === 0) ? '?' : `${Math.round(servicesMaxMemory[i].maxMemory)}%`,
+        servicesMaxMetric[i].service,
+        (servicesMaxMetric[i].maxMetricValue === 0) ? '?' : `${Math.round(servicesMaxMetric[i].maxMetricValue)}%`,
         currentValue,
         proposedValue
       ]);
@@ -121,6 +129,13 @@ sts.getCallerIdentity().promise()
 
 function roundToMultipleOf (n, multiple) {
   if (n > 0) { return Math.ceil(n / (multiple * 1.0)) * multiple; } else if (n < 0) { return Math.floor(n / (multiple * 1.0)) * multiple; } else { return multiple; }
+}
+
+function getCurrentValue (data) {
+  if (program.type === 'CPUUtilization') {
+    return data.taskDefinition.containerDefinitions[0].cpu || data.taskDefinition.containerDefinitions[0].cpuReservation;
+  }
+  return data.taskDefinition.containerDefinitions[0].memory || data.taskDefinition.containerDefinitions[0].memoryReservation;
 }
 
 function paginateServices (params, serviceArns = []) {
