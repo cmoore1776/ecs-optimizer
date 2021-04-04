@@ -34,18 +34,18 @@
     "preflight": "npm run lint && npm audit"
   },
   "devDependencies": {
-    "eslint": "^6.8.0",
-    "eslint-config-standard": "^14.1.0",
-    "eslint-plugin-import": "^2.19.1",
-    "eslint-plugin-node": "^11.0.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1"
+    "eslint": "^7.2.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1",
+    "eslint-plugin-standard": "^5.0.0"
   },
   "dependencies": {
-    "aws-sdk": "^2.597.0",
-    "chalk": "^3.0.0",
-    "cli-table": "^0.3.1",
+    "aws-sdk": "^2.879.0",
+    "chalk": "^4.1.0",
+    "cli-table": "^0.3.6",
     "commander": "^4.1.0",
-    "moment": "^2.24.0"
+    "moment": "^2.29.1"
   }
 }

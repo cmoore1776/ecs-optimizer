@@ -1,6 +1,6 @@
 # ecs-optimizer
 
-Recommendation engine for ECS service memory allocation based on CloudWatch Metrics.
+Recommendations for ECS service memory allocation based on CloudWatch Metrics.
 
 ## Installation
 
@@ -11,7 +11,7 @@ npm install --global ecs-optimizer
 ## Usage
 
 ```shell
-$ ./ecs-optimizer.js --help
+$ ecs-optimizer --help
 
   Usage: ecs-optimizer [options]
 
@@ -28,7 +28,7 @@ $ ./ecs-optimizer.js --help
 ## Example output
 
 ```shell
-$ ./ecs-optimizer.js --region us-east-1 --cluster my-ecs-cluster --percentage 75
+$ ecs-optimizer --region us-east-1 --cluster my-ecs-cluster --percentage 75
 
 Validating AWS credentials...
 => Logged in as arn:aws:sts::12345678910:assumed-role/role/nickname
